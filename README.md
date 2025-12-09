@@ -99,3 +99,56 @@ Best practices for securing your Next.js application:
 - **CORS & CSP**: Configure headers in `next.config.mjs` for security policies
 - **Data Validation**: Sanitize user inputs and validate API responses
 - **HTTPS Only**: Always deploy with SSL/TLS in production
+
+---
+
+## 🚀 Case Study: "The Never-Ending Deployment Loop" (Concept 3)
+
+### Problem
+QuickServe's CI/CD pipeline fails mid-deployment with errors like "Environment variable not found" or "Port already in use." Old containers persist on AWS, causing version conflicts in production.
+
+### Root Cause Analysis
+
+**What's Going Wrong:**
+1. **Missing Environment Variables**: `.env` files not properly injected into containers
+2. **Port Conflicts**: Old containers not terminated before new deployment
+3. **Incomplete Cleanup**: Failed deployments leave orphaned containers running
+4. **No Version Tracking**: Multiple container versions running simultaneously
+
+### Solution: Proper Containerization & CI/CD
+
+**1. Docker Best Practices**
+- Use multi-stage builds for optimized images
+- Pass environment variables via `docker run -e` or Docker Compose
+- Implement health checks in Dockerfile
+- Tag images with version numbers (e.g., `app:v1.2.3`)
+
+**2. Environment Variable Management**
+- Store secrets in AWS Secrets Manager or Azure Key Vault
+- Use `.env` files only for local development
+- Inject variables at runtime, not build time
+- Never hardcode sensitive data in images
+
+**3. CI/CD Pipeline Configuration**
+```
+Code Commit → Build → Test → Containerize → Deploy → Verify
+```
+- **Build Stage**: Run tests, build Docker image with proper tags
+- **Deploy Stage**: Stop old containers, pull new image, start with health checks
+- **Rollback Strategy**: Keep previous image version for quick rollback
+
+**4. Cloud Deployment Workflow (AWS/Azure)**
+- Use orchestration (ECS/AKS) for container lifecycle management
+- Configure load balancers for zero-downtime deployments
+- Implement blue-green or rolling deployment strategies
+- Set up proper logging and monitoring
+
+### The "Chain of Trust"
+Each stage must complete successfully before proceeding:
+1. **Code Commit** → Trigger CI pipeline
+2. **Container Build** → Tagged, tested image pushed to registry
+3. **Deployment** → Old version gracefully terminated
+4. **Environment Setup** → Variables injected, health checks pass
+5. **Verification** → Smoke tests confirm deployment success
+
+This ensures smooth, versioned, and secure deployments with proper cleanup at each stage.
